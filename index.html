@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorteio do Casal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="confetti-container" id="confetti" aria-hidden="true"></div>
+
+  <!-- Tela de login -->
+  <div id="screen-login" class="screen">
+    <div class="login-wrap">
+      <p class="subtitle">presente do mes</p>
+      <h1 class="title">
+        <span class="v">Vitor</span> &amp; <span class="m">Maria</span>
+      </h1>
+      <p class="login-label">quem é você?</p>
+      <div class="login-btns">
+        <button class="btn-who v" onclick="startLogin('vitor')">Vitor</button>
+        <button class="btn-who m" onclick="startLogin('maria')">Maria</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tela de senha -->
+  <div id="screen-senha" class="screen" style="display:none">
+    <div class="login-wrap">
+      <p class="subtitle">acesso restrito</p>
+      <p class="person-name" id="senha-person-name"></p>
+      <input class="modal-input" id="senha-input" type="password" placeholder="sua senha">
+      <p class="modal-error" id="senha-error"></p>
+      <div class="modal-actions">
+        <button class="modal-btn confirm" onclick="confirmarSenha()">entrar</button>
+        <button class="modal-btn cancel" onclick="voltarLogin()">voltar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tela principal -->
+  <div id="screen-main" class="screen" style="display:none">
+
+    <header class="header">
+      <p class="subtitle">presente do mes</p>
+      <h1 class="title-single" id="main-title"></h1>
+      <button class="btn-logout" onclick="logout()">sair</button>
+      <button class="btn-alterar-senha" onclick="abrirAlterarSenha()">alterar senha</button>
+    </header>
+
+    <main class="container">
+      <section class="raffle-zone" aria-live="polite">
+        <p class="person-label">sortear presente de</p>
+        <p class="person-name" id="person-display"></p>
+
+        <div class="progress-track">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div class="result-box">
+          <p class="empty-state" id="placeholder">Clica no botão pra sortear</p>
+          <p class="result-item-name" id="result-name"></p>
+          <a class="result-link" id="result-link" href="#" target="_blank" rel="noopener">ver produto</a>
+        </div>
+
+        <button class="btn-raffle" id="btn-sortear" onclick="sortear()">Sortear</button>
+
+        <div class="stats-row">
+          <div class="stat-pill">Restam <strong id="remaining-count">—</strong></div>
+          <div class="stat-pill">Sorteados <strong id="drawn-count">0</strong></div>
+        </div>
+      </section>
+
+      <button class="btn-reset" id="btn-reset" onclick="handleReset()">resetar meus sorteios</button>
+    </main>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="data/items.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/ui.js"></script>
+  <script type="module" src="js/firebase-init.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Modal alterar senha -->
+  <div class="modal-overlay" id="modal-senha" style="display:none">
+    <div class="modal-box">
+      <p class="modal-title">alterar senha</p>
+
+      <div id="passo-atual">
+        <p class="modal-sub">confirme sua senha atual</p>
+        <input class="modal-input" id="input-atual" type="password" placeholder="senha atual">
+        <p class="modal-error" id="error-atual"></p>
+        <div class="modal-actions">
+          <button class="modal-btn confirm" onclick="confirmarAtual()">confirmar</button>
+          <button class="modal-btn cancel" onclick="fecharAlterarSenha()">cancelar</button>
+        </div>
+      </div>
+
+      <div id="passo-nova" style="display:none">
+        <p class="modal-sub">defina a nova senha</p>
+        <input class="modal-input" id="input-nova" type="password" placeholder="nova senha">
+        <input class="modal-input" id="input-confirma" type="password" placeholder="confirmar nova senha" style="margin-top:10px">
+        <p class="modal-error" id="error-nova"></p>
+        <div class="modal-actions">
+          <button class="modal-btn confirm" onclick="salvarNovaSenha()">salvar</button>
+          <button class="modal-btn cancel" onclick="fecharAlterarSenha()">cancelar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

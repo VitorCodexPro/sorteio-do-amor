@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorteio do Casal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Space+Mono:wght@400;700&display=swap">
+  <style>
+/* ─── Reset & vars ───────────────────────────────────────────────────────────── */
+:root {
+  --bg:       #0d0d0f;
+  --surface:  #141418;
+  --surface2: #1a1a20;
+  --border:   #2a2a35;
+  --border2:  #3a3a48;
+  --accent-v: #7c5cfc;
+  --accent-m: #fc5c8a;
+  --text:     #e8e8f0;
+  --muted:    #6b6b80;
+  --gold:     #f5c842;
+  --radius:   12px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* grain */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.4;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────────── */
+.header {
+  text-align: center;
+  padding: 56px 20px 36px;
+}
+
+.header::after {
+  content: '';
+  display: block;
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-v), var(--accent-m));
+  margin: 20px auto 0;
+}
+
+.subtitle {
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.title .v { color: var(--accent-v); }
+.title .m { color: var(--accent-m); }
+
+/* ─── Tabs ───────────────────────────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  justify-content: center;
+  max-width: 440px;
+  margin: 36px auto 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 13px 20px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.tab-btn:last-child { border-right: none; }
+
+.tab-btn.active-v { background: var(--accent-v); color: #fff; }
+.tab-btn.active-m { background: var(--accent-m); color: #fff; }
+
+.tab-btn:hover:not(.active-v):not(.active-m) {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+/* ─── Container ──────────────────────────────────────────────────────────────── */
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 36px 20px 80px;
+}
+
+/* ─── Raffle zone ────────────────────────────────────────────────────────────── */
+.raffle-zone {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 36px 36px;
+  text-align: center;
+  margin-bottom: 36px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* glow de fundo */
+.raffle-zone::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,92,252,0.07), transparent 70%);
+  pointer-events: none;
+}
+
+.person-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.person-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.7rem;
+  font-style: italic;
+  margin-bottom: 28px;
+}
+
+.person-name.vitor { color: var(--accent-v); }
+.person-name.maria { color: var(--accent-m); }
+
+/* barra de progresso */
+.progress-track {
+  width: 100%;
+  height: 3px;
+  background: var(--border);
+  border-radius: 99px;
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-v), var(--accent-m));
+  border-radius: 99px;
+  width: 0%;
+  transition: width 0.5s ease;
+}
+
+/* result box */
+.result-box {
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+  gap: 10px;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-size: 0.73rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.result-item-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.3;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.result-item-name.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.result-link {
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2px;
+  opacity: 0;
+  transition: opacity 0.35s 0.12s ease, color 0.2s, border-color 0.2s;
+}
+
+.result-link.show { opacity: 1; }
+.result-link:hover { color: var(--text); border-color: var(--text); }
+
+/* botão sortear */
+.btn-raffle {
+  background: linear-gradient(135deg, var(--accent-v), var(--accent-m));
+  color: #fff;
+  border: none;
+  padding: 15px 52px;
+  border-radius: var(--radius);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  box-shadow: 0 4px 20px rgba(124,92,252,0.3);
+}
+
+.btn-raffle:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(124,92,252,0.45);
+}
+
+.btn-raffle:active:not(:disabled) { transform: translateY(0); }
+
+.btn-raffle:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-raffle.maria-mode {
+  background: linear-gradient(135deg, var(--accent-m), #c0392b);
+  box-shadow: 0 4px 20px rgba(252,92,138,0.3);
+}
+
+.btn-raffle.maria-mode:hover:not(:disabled) {
+  box-shadow: 0 8px 28px rgba(252,92,138,0.45);
+}
+
+/* stats */
+.stats-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.stat-pill strong { color: var(--text); }
+
+/* ─── Histórico ──────────────────────────────────────────────────────────────── */
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--muted);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  animation: slideIn 0.3s ease both;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.history-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.history-dot.v { background: var(--accent-v); }
+.history-dot.m { background: var(--accent-m); }
+
+.history-info { flex: 1; min-width: 0; }
+
+.history-person {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.history-name {
+  font-size: 0.82rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.history-month {
+  font-size: 0.62rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.history-link-icon {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.65rem;
+  border: 1px solid var(--border);
+  padding: 3px 9px;
+  border-radius: 4px;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.history-link-icon:hover {
+  color: var(--text);
+  border-color: var(--border2);
+}
+
+/* ─── Reset btn ──────────────────────────────────────────────────────────────── */
+.btn-reset {
+  background: transparent;
+  border: 1px solid #2a1515;
+  color: #4a2525;
+  padding: 9px 22px;
+  border-radius: 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.67rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  margin-top: 28px;
+  display: block;
+  margin-left: auto;
+}
+
+.btn-reset:hover {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+/* ─── Confetti ───────────────────────────────────────────────────────────────── */
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -12px;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ─── Responsivo ─────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .raffle-zone { padding: 28px 20px 24px; }
+  .title { font-size: 2rem; }
+  .result-item-name { font-size: 1.1rem; }
+}
+
+</style>
+</head>
+<body>
+
+  <div class="confetti-container" id="confetti" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <p class="subtitle">presente do mes</p>
+    <h1 class="title">
+      <span class="v">Vitor</span> &amp; <span class="m">Maria</span>
+    </h1>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active-v" data-mode="vitor" role="tab" aria-selected="true">Vitor</button>
+    <button class="tab-btn"          data-mode="maria" role="tab" aria-selected="false">Maria</button>
+  </nav>
+
+  <!-- Main -->
+  <main class="container">
+
+    <!-- Zona de sorteio -->
+    <section class="raffle-zone" aria-live="polite">
+      <p class="person-label">sortear presente de</p>
+      <p class="person-name vitor" id="person-display">Vitor</p>
+
+      <div class="progress-track">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+
+      <div class="result-box" id="result-box">
+        <p class="empty-state" id="placeholder">Clica no botão pra sortear</p>
+        <p class="result-item-name" id="result-name"></p>
+        <a class="result-link" id="result-link" href="#" target="_blank" rel="noopener">ver produto</a>
+      </div>
+
+      <button class="btn-raffle" id="btn-sortear">Sortear</button>
+
+      <div class="stats-row">
+        <div class="stat-pill">Restam <strong id="remaining-count">—</strong></div>
+        <div class="stat-pill">Sorteados <strong id="drawn-count">0</strong></div>
+      </div>
+    </section>
+
+    <!-- Histórico -->
+    <section>
+      <h2 class="section-title">historico de sorteios</h2>
+      <div class="history-list" id="history-list">
+        <div class="empty-state">Nenhum sorteio ainda.</div>
+      </div>
+    </section>
+
+    <button class="btn-reset" id="btn-reset">resetar tudo</button>
+
+  </main>
+
+  <!-- Scripts: dados → estado → ui → app -->
+  
+  
+  
+  
+
+<script>
+const ITEMS = {
+  vitor: [
+    { id: "v01", name: "Teclado e mouse sem fio branco",              url: "https://br.shp.ee/4T7C81wZ" },
+    { id: "v02", name: "Camisa Polo com Ziper",                       url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbLGhGC0b3_8&localcountry=BR" },
+    { id: "v03", name: "Camiseta Basica Essencial Manga Curta",       url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbYPPIwn9r_8&localcountry=BR" },
+    { id: "v04", name: "Camisa Polo Malha Canelada Listrada",         url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbVsbKdlN6_8&localcountry=BR" },
+    { id: "v05", name: "Camiseta Malha Waffle Ajuste Muscular",       url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbV0RrnfvN_8&localcountry=BR" },
+    { id: "v06", name: "Sueter Gola Careca Casual de Inverno",        url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbRJwUhwjP_8&localcountry=BR" },
+    { id: "v07", name: "Sueter Manga Curta Gola Alta Classico",       url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbqPptVK8P_8&localcountry=BR" },
+    { id: "v08", name: "Sueter Gola Careca Tricotado Manga Longa",    url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbqouR3HGB_8&localcountry=BR" },
+    { id: "v09", name: "Calca de Moletom Perna Larga",                url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbI0AQAOkI_8&localcountry=BR" },
+    { id: "v10", name: "Meias Esportivas Confortaveis Unissex",       url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAn7SDzr0zc_8&localcountry=BR" },
+    { id: "v11", name: "Regata Masculina Premium Americana Canelada", url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAnuPL9mxE3_8&localcountry=BR" },
+    { id: "v12", name: "Regata Masculina Casual Basica Algodao",      url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAnuzGnqBmV_8&localcountry=BR" },
+    { id: "v13", name: "Sueter Grunge Punk Jacquard Desgastado",      url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAn8jJEPXWF_8&localcountry=BR" },
+    { id: "v14", name: "Colete Cropped Solto Estampa Gotica",         url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAncvCFZjZ1_8&localcountry=BR" },
+    { id: "v15", name: "Sueter Oversized Malha Canelada Manga Curta", url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAneInwHoBT_8&localcountry=BR" },
+  ],
+  maria: [
+    { id: "m01", name: "Acido Creamy (rosa)",                         url: "https://vt.tiktok.com/ZS98qkxedxFyw-D788t/" },
+    { id: "m02", name: "Conjunto de academia",                        url: "https://vt.tiktok.com/ZS98qBNX3onVt-M5mUs/" },
+    { id: "m03", name: "Blusa assimetrica com babado gola alta",      url: "https://vt.tiktok.com/ZS98qB6LfAcks-NJU5x/" },
+    { id: "m04", name: "Sabonete liquido facial Creamy",              url: "https://vt.tiktok.com/ZS98qk4M51YVT-zQp7O/" },
+    { id: "m05", name: "Look Shein 1",                                url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAUK3WOlqck_8&localcountry=BR" },
+    { id: "m06", name: "Look Shein 2",                                url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAU0t5Xgbhh_8&localcountry=BR" },
+    { id: "m07", name: "Conjunto Shein",                              url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAUycx531bg_8&localcountry=BR" },
+    { id: "m08", name: "Camisa",                                      url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbLSqpiKdy_8&localcountry=BR" },
+    { id: "m09", name: "Camisa branca",                               url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbLBQ0BUqB_8&localcountry=BR" },
+    { id: "m10", name: "Sapato",                                      url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbVdTZKhey_8&localcountry=BR" },
+    { id: "m11", name: "Sutia",                                       url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbVQYliaFR_8&localcountry=BR" },
+    { id: "m12", name: "Saia longa",                                  url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAblZU5qXci_8&localcountry=BR" },
+    { id: "m13", name: "Camisa preta",                                url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbR6WbuApH_8&localcountry=BR" },
+    { id: "m14", name: "Vestido mid",                                 url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbqEsbMwvB_8&localcountry=BR" },
+    { id: "m15", name: "Salto marrom",                                url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbPXAr5nON_8&localcountry=BR" },
+    { id: "m16", name: "Vestido marrom",                              url: "https://api-shein.shein.com/h5/sharejump/appjump?link=lAbP6jh1VgL_8&localcountry=BR" },
+  ]
+};
+
+
+// ─── State Manager ───────────────────────────────────────────────────────────
+// Persiste via localStorage. IDs em vez de índices — à prova de reordenação.
+
+const STATE_KEY = 'sorteio_v2';
+
+const DEFAULT_STATE = () => ({
+  version: 2,
+  vitor:  { drawnIds: [] },
+  maria:  { drawnIds: [] },
+  history: []   // [{ person, itemId, name, url, drawnAt }]
+});
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STATE_KEY);
+    if (!raw) return DEFAULT_STATE();
+    const parsed = JSON.parse(raw);
+    // migração da versão antiga (índices → ids)
+    if (!parsed.version || parsed.version < 2) return DEFAULT_STATE();
+    return parsed;
+  } catch {
+    return DEFAULT_STATE();
+  }
+}
+
+function saveState(state) {
+  try {
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.error('Falha ao salvar estado:', e);
+  }
+}
+
+function resetPerson(state, person) {
+  state[person].drawnIds = [];
+  // remove histórico da pessoa mas mantém do outro
+  state.history = state.history.filter(h => h.person !== person);
+}
+
+function resetAll(state) {
+  const fresh = DEFAULT_STATE();
+  Object.assign(state, fresh);
+}
+
+function drawItem(state, person, items) {
+  const drawnIds = state[person].drawnIds;
+  const available = items.filter(i => !drawnIds.includes(i.id));
+  if (available.length === 0) return null;
+
+  const winner = available[Math.floor(Math.random() * available.length)];
+
+  drawnIds.push(winner.id);
+  state.history.unshift({
+    person,
+    itemId:  winner.id,
+    name:    winner.name,
+    url:     winner.url,
+    drawnAt: new Date().toISOString()
+  });
+
+  saveState(state);
+  return winner;
+}
+
+function getAvailable(state, person, items) {
+  return items.filter(i => !state[person].drawnIds.includes(i.id));
+}
+
+
+// ─── UI ───────────────────────────────────────────────────────────────────────
+
+const MONTHS = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+// ── Tabs / modo ───────────────────────────────────────────────────────────────
+function renderMode(mode) {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active-v', 'active-m');
+  });
+  const activeTab = document.querySelector(`.tab-btn[data-mode="${mode}"]`);
+  if (activeTab) activeTab.classList.add(mode === 'vitor' ? 'active-v' : 'active-m');
+
+  const display = document.getElementById('person-display');
+  display.textContent = mode === 'vitor' ? 'Vitor' : 'Maria';
+  display.className = 'person-name ' + mode;
+
+  const btn = document.getElementById('btn-sortear');
+  btn.className = 'btn-raffle' + (mode === 'maria' ? ' maria-mode' : '');
+
+  clearResult();
+}
+
+// ── Resultado ─────────────────────────────────────────────────────────────────
+function clearResult() {
+  const nameEl   = document.getElementById('result-name');
+  const linkEl   = document.getElementById('result-link');
+  const phEl     = document.getElementById('placeholder');
+  const tagEl    = document.getElementById('result-tag');
+
+  nameEl.classList.remove('show');
+  linkEl.classList.remove('show');
+  if (tagEl) tagEl.classList.remove('show');
+
+  phEl.style.display = 'block';
+  phEl.textContent   = 'Clica no botão pra sortear';
+}
+
+function showRolling(text) {
+  const phEl = document.getElementById('placeholder');
+  phEl.style.display = 'block';
+  phEl.textContent   = text;
+
+  const nameEl = document.getElementById('result-name');
+  const linkEl = document.getElementById('result-link');
+  nameEl.classList.remove('show');
+  linkEl.classList.remove('show');
+}
+
+function showResult(item) {
+  const phEl   = document.getElementById('placeholder');
+  const nameEl = document.getElementById('result-name');
+  const linkEl = document.getElementById('result-link');
+
+  phEl.style.display = 'none';
+  nameEl.textContent = item.name;
+  linkEl.href        = item.url;
+
+  requestAnimationFrame(() => {
+    nameEl.classList.add('show');
+    linkEl.classList.add('show');
+  });
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function renderStats(state, mode, items) {
+  const total   = items.length;
+  const drawn   = state[mode].drawnIds.length;
+  const remain  = total - drawn;
+
+  document.getElementById('remaining-count').textContent = remain;
+  document.getElementById('drawn-count').textContent     = drawn;
+
+  const btn = document.getElementById('btn-sortear');
+  btn.disabled    = remain === 0;
+  btn.textContent = remain === 0 ? 'Lista esgotada' : 'Sortear';
+
+  // barra de progresso
+  const bar = document.getElementById('progress-bar');
+  if (bar) bar.style.width = `${(drawn / total) * 100}%`;
+}
+
+// ── Histórico ─────────────────────────────────────────────────────────────────
+function renderHistory(state) {
+  const list = document.getElementById('history-list');
+
+  if (state.history.length === 0) {
+    list.innerHTML = '<div class="empty-state">Nenhum sorteio ainda.</div>';
+    return;
+  }
+
+  list.innerHTML = state.history.map((h, idx) => `
+    <div class="history-item" style="animation-delay:${idx * 0.04}s">
+      <div class="history-dot ${h.person === 'vitor' ? 'v' : 'm'}"></div>
+      <div class="history-info">
+        <div class="history-person">${h.person}</div>
+        <div class="history-name">${h.name}</div>
+      </div>
+      <div class="history-meta">
+        <div class="history-month">${formatDate(h.drawnAt)}</div>
+        <a class="history-link-icon" href="${h.url}" target="_blank" rel="noopener">ver</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Confetti ──────────────────────────────────────────────────────────────────
+function fireConfetti(accentColor) {
+  const container = document.getElementById('confetti');
+  const colors    = [accentColor, '#f5c842', '#ffffff', '#50fa7b', '#8be9fd'];
+
+  for (let i = 0; i < 70; i++) {
+    const el    = document.createElement('div');
+    el.className = 'confetti-piece';
+    const color  = colors[Math.floor(Math.random() * colors.length)];
+    const size   = 4 + Math.random() * 9;
+    el.style.cssText = `
+      left:${Math.random() * 100}vw;
+      background:${color};
+      border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+      width:${size}px;
+      height:${size}px;
+      animation-duration:${1.5 + Math.random() * 2}s;
+      animation-delay:${Math.random() * 0.4}s;
+      transform:rotate(${Math.random() * 360}deg);
+    `;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 4500);
+  }
+}
+
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+
+let currentMode = 'vitor';
+let state       = loadState();
+let isRolling   = false;
+
+// ── Spin ──────────────────────────────────────────────────────────────────────
+function sortear() {
+  if (isRolling) return;
+
+  const items     = ITEMS[currentMode];
+  const available = getAvailable(state, currentMode, items);
+  if (available.length === 0) return;
+
+  isRolling = true;
+  document.getElementById('btn-sortear').disabled = true;
+
+  let count    = 0;
+  const spins  = 22 + Math.floor(Math.random() * 8); // 22–30 spins
+  let interval = 60;
+
+  function tick() {
+    const rand = available[Math.floor(Math.random() * available.length)];
+    showRolling(rand.name);
+    count++;
+
+    // acelera no início, desacelera no fim
+    if (count > spins * 0.7) interval = Math.min(interval * 1.15, 200);
+
+    if (count < spins) {
+      setTimeout(tick, interval);
+    } else {
+      // sorteia de verdade
+      const winner = drawItem(state, currentMode, items);
+      showResult(winner);
+      renderStats(state, currentMode, items);
+      renderHistory(state);
+
+      const accent = currentMode === 'vitor' ? '#7c5cfc' : '#fc5c8a';
+      fireConfetti(accent);
+
+      isRolling = false;
+      document.getElementById('btn-sortear').disabled = false;
+    }
+  }
+
+  tick();
+}
+
+// ── Troca de modo ─────────────────────────────────────────────────────────────
+function setMode(mode) {
+  if (isRolling) return;
+  currentMode = mode;
+  renderMode(mode);
+  renderStats(state, mode, ITEMS[mode]);
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+function handleReset() {
+  if (isRolling) return;
+
+  const msg = 'Resetar tudo? O histórico completo será perdido.';
+  if (!confirm(msg)) return;
+
+  resetAll(state);
+  saveState(state);
+  clearResult();
+  renderStats(state, currentMode, ITEMS[currentMode]);
+  renderHistory(state);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // bind tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => setMode(btn.dataset.mode));
+  });
+
+  // bind botões
+  document.getElementById('btn-sortear').addEventListener('click', sortear);
+  document.getElementById('btn-reset').addEventListener('click', handleReset);
+
+  // render inicial
+  renderMode(currentMode);
+  renderStats(state, currentMode, ITEMS[currentMode]);
+  renderHistory(state);
+});
+
+</script>
+</body>
+</html>
