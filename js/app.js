@@ -4,6 +4,42 @@ let currentMode = null;
 let state       = loadState();
 let isRolling   = false;
 
+// ── Chuva de fotos ────────────────────────────────────────────────────────────
+const TOTAL_FOTOS = 20;
+
+function iniciarChuva() {
+  const container = document.getElementById('chuva-fotos');
+  container.innerHTML = '';
+
+  for (let i = 0; i < 18; i++) {
+    setTimeout(() => criarFoto(container), i * 600);
+  }
+}
+
+function criarFoto(container) {
+  const idx      = Math.floor(Math.random() * TOTAL_FOTOS) + 1;
+  const img      = document.createElement('img');
+  img.className  = 'foto-coracao';
+  img.src        = `img/fotos/${idx}.jpg`;
+
+  const duracao  = 8 + Math.random() * 8;
+  const delay    = Math.random() * 4;
+  const leftPos  = Math.random() * 95;
+
+  img.style.cssText = `
+    left: ${leftPos}vw;
+    animation-duration: ${duracao}s;
+    animation-delay: ${delay}s;
+  `;
+
+  img.addEventListener('animationend', () => {
+    img.remove();
+    criarFoto(container);
+  });
+
+  container.appendChild(img);
+}
+
 // ── Login ─────────────────────────────────────────────────────────────────────
 function startLogin(mode) {
   currentMode = mode;
@@ -187,5 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') confirmarSenha();
   });
 
+  iniciarChuva();
   showScreen('screen-login');
 });
